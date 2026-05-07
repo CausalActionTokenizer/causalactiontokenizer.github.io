@@ -74,11 +74,11 @@ body {
 /* ── Hero ── */
 .hero-text {
   font-family: 'Helvetica Neue', Arial, sans-serif;
-  font-size: 64px;
+  font-size: 48px;
   font-weight: 800;
-  letter-spacing: -2px;
+  letter-spacing: -1px;
   color: #111;
-  line-height: 1;
+  line-height: 1.15;
   margin-bottom: 16px;
 }
 
@@ -304,7 +304,7 @@ body {
 }
 
 @media (max-width: 640px) {
-  .hero-text { font-size: 40px; }
+  .hero-text { font-size: 32px; }
   .sub-hero-text { font-size: 16px; }
   .video-grid-2, .video-grid-3 { grid-template-columns: 1fr; }
 }
