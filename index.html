@@ -95,7 +95,7 @@
       </p>
     </div>
 
-    <div style="overflow-x: auto; margin: 20px 0;">
+    <div style="clear:both; overflow-x: auto; margin: 20px 0;">
     <table class="results-table">
       <thead>
         <tr>
@@ -142,12 +142,12 @@
       Table 1. Simulation benchmarking results. CATok consistently outperforms baseline tokenizers across all benchmarks. <span class="best">Blue bold</span> values indicate best results per column.
     </p>
 
-    <div class="pipeline-wrap" style="margin-top: 32px;">
+    <div class="wrapfig-right">
       <img src="./media/training_efficiency.png" alt="Training Efficiency">
+      <p class="figure-caption" style="margin-bottom:0;">
+        <strong>Figure 3. Training efficiency on Simpler-Bridge.</strong> CATok achieves higher success rates with fewer training steps. The causal token structure provides a natural stage-wise factorization that makes each token prediction more informative for trajectory generation.
+      </p>
     </div>
-    <p class="figure-caption">
-      <strong>Figure 3. Training efficiency on Simpler-Bridge.</strong> CATok achieves higher success rates with fewer training steps. The causal token structure provides a natural stage-wise factorization that makes each token prediction more informative for trajectory generation.
-    </p>
 
     <div class="pipeline-wrap" style="margin-top: 24px;">
       <img src="./media/table2_bar.png" alt="Intrinsic Tokenizer Properties">

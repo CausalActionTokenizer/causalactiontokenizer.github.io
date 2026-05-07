@@ -220,6 +220,26 @@ body {
   line-height: 1.4;
 }
 
+/* ── Wrap figure (float right, ~half width) ── */
+.wrapfig-right {
+  float: right;
+  width: 50%;
+  margin: 4px 0 16px 28px;
+}
+
+.wrapfig-right img {
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .wrapfig-right {
+    float: none;
+    width: 100%;
+    margin: 16px 0;
+  }
+}
+
 /* ── Pipeline figure ── */
 .pipeline-wrap {
   margin: 20px 0 8px;
