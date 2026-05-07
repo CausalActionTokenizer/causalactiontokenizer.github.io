@@ -164,24 +164,10 @@
     <div class="tagline" id="causal-tokens">Analysis</div>
     <div class="section">
       <p>
-        We analyze two complementary questions: (1) are CATok tokens causally ordered? and (2) do they carry distinct generative semantics across positions?
-      </p>
-
-      <p>
-        <strong>Causal Predictive Ordering.</strong> We train a lightweight action-only autoregressive transformer per tokenizer and measure the per-token Shannon entropy H<sub>k</sub> on held-out LIBERO&ndash;Bridge chunks. If tokens are causally ordered, entropy should decrease as more prefix tokens are observed&mdash;each additional token reducing uncertainty over the next.
+        <strong>Causal Predictive Ordering.</strong> Per-token Shannon entropy decreases monotonically in the forward token order (Figure 6(a)), while reversing the order flips the trend&mdash;confirming the learned ordering is directional and causal. FAST and BIN show no such structure.
       </p>
       <p>
-        As shown in Figure 6(a), <em>CATok fwd</em> exhibits a clear decreasing entropy trend, while <em>CATok rev</em> (same tokens predicted in reverse order) shows the opposite trend&mdash;confirming the learned ordering is directional and causal, not arbitrary. FAST is nearly flat and BIN mildly increases, indicating neither induces meaningful causal structure.
-      </p>
-
-      <p>
-        <strong>Stage-wise Generative Semantics.</strong> We visualize VQ embeddings from 32,768 LIBERO action chunks via t-SNE (Figure 6(b)). Embeddings are clearly organized by token slot: early slots form smooth elongated regions, middle slots become more diffuse, and late slots form compact separated clusters. This slot-dependent geometry shows that CATok tokens occupy distinct generative roles&mdash;progressing from shared motion factors to specialized residual corrections&mdash;rather than being exchangeable codebook indices.
-      </p>
-      <p>
-        We further reconstruct action chunks from token prefixes of increasing length (n &isin; {1, 6, 11, 16}). As shown in Figure 6(c), adding tokens induces coherent trajectory updates&mdash;from structural changes in spatial, rotation, and gripper dimensions to finer residual refinements&mdash;confirming each token serves as a meaningful generative increment.
-      </p>
-      <p>
-        Together, these probes show that CATok learns a coarse-to-fine generative hierarchy aligned with autoregressive modeling: earlier tokens capture shared global structure while later tokens contribute increasingly specialized residual refinements.
+        <strong>Stage-wise Generative Semantics.</strong> t-SNE of VQ embeddings (Figure 6(b)) reveals clear slot-dependent geometry: early tokens form smooth elongated regions, late tokens form compact separated clusters. Prefix reconstructions (Figure 6(c)) show coherent coarse-to-fine trajectory updates, confirming each token contributes a distinct generative increment.
       </p>
     </div>
 
