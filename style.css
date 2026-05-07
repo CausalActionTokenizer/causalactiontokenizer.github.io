@@ -222,14 +222,10 @@ body {
 
 /* ── Pipeline figure ── */
 .pipeline-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
   margin: 20px 0 8px;
 }
 
-.pipeline-wrap img { display: block; width: 100%; border-radius: 8px; }
+.pipeline-wrap img { display: block; width: 100%; }
 
 /* ── Table ── */
 .results-table {
