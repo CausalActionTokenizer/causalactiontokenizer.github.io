@@ -22,114 +22,166 @@
 
   <div class="main-content">
 
-    <!-- ── Hero ── -->
+    <!-- Hero -->
     <div class="hero-text">CATok</div>
-    <div class="sub-hero-text">Can CATok Produce Causal Tokens with Generative Semantics?</div>
-    <div class="authors">Anonymous Authors</div>
+    <div class="sub-hero-text">Rethinking Causal Action Tokenization with Condition Annealing in Flow Matching</div>
+    <div class="authors">Anonymous Authors &nbsp;&middot;&nbsp; NeurIPS 2026 Submission</div>
 
-    <!-- Teaser video / image — replace src when ready -->
-    <div class="teaser-wrap">
-      <video src="./media/teaser.mp4" controls muted playsinline autoplay loop></video>
-    </div>
-    <p class="figure-caption">
-      <strong>CATok</strong> is a causal action tokenizer that produces tokens with generative semantics, enabling …
-      <em>(fill in one-sentence teaser)</em>
-    </p>
-
-    <!-- Quick links -->
     <div class="quick-links">
-      <a href="./catok.pdf" target="_blank">[pdf]</a>
-      <a href="https://github.com/CausalActionTokenizer/CATok" target="_blank">[code]</a>
+      <a href="#" title="Coming soon">[pdf &nbsp;<span style="font-size:11px;opacity:0.5;">coming soon</span>]</a>
+      <a href="#" title="Coming soon">[code &nbsp;<span style="font-size:11px;opacity:0.5;">coming soon</span>]</a>
     </div>
 
-    <!-- ── Abstract ── -->
+    <!-- Abstract -->
     <div class="tagline" id="abstract">Abstract</div>
     <div class="section">
       <p>
-        <!-- PASTE ABSTRACT HERE -->
-        Lorem ipsum — replace with paper abstract.
+        Autoregressive Vision-Language-Action (VLA) models offer a scalable path to robot learning, yet existing action tokenizers treat tokenization as a compression problem, producing representations that are semantically misaligned with the autoregressive backbone.
+      </p>
+      <p>
+        We propose <strong>CATok</strong>, a causal action tokenizer that reframes tokenization as a causally structured generative process. CATok introduces a <em>conditional annealing mechanism</em> that extracts action tokens by progressively annealing a flow-matching process: each token is conditioned on all preceding tokens and encodes the residual reconstruction signal at a specific noise level, establishing a coarse-to-fine causal token space whose generative semantics are structurally aligned with autoregressive modeling.
+      </p>
+      <p>
+        A <em>token-conditioned flow matching decoder</em> built on MMDiT reconstructs continuous action chunks from these discrete tokens with the precision of hybrid diffusion-head architectures, while the discrete bottleneck enforces knowledge insulation by construction&mdash;cleanly separating high-level semantic reasoning from low-level motor execution without requiring explicit attention masking.
+      </p>
+      <p>
+        Extensive evaluations across three simulation benchmarks demonstrate that CATok consistently surpasses existing tokenization methods in both reconstruction fidelity and task success rate, establishing a high-performance, scalable foundation for purely autoregressive VLA systems.
       </p>
     </div>
 
-    <!-- ── Pipeline ── -->
+    <!-- Pipeline -->
     <div class="tagline" id="pipeline">Pipeline</div>
     <div class="section">
       <p>
-        <!-- DESCRIBE PIPELINE HERE -->
+        CATok consists of three components: (1) a <strong>Dual-Stream Action Encoder</strong> that maps raw action chunks into a compact set of latent query tokens via co-attention with an MMDiT-based transformer; (2) a <strong>Bottleneck Vector Quantizer</strong> that discretizes latent tokens into a finite codebook using factorized codes; and (3) a <strong>Flow-Matching Decoder with Conditional Annealing</strong> that reconstructs high-fidelity action trajectories while enforcing a coarse-to-fine causal structure.
+      </p>
+      <p>
+        The key design is the <em>conditional annealing mechanism</em>: at flow-matching timestep <em>t</em>, the first &lfloor;<em>tK</em>&rfloor; token embeddings are progressively masked, forcing each token to specialize in a distinct generative stage&mdash;from coarse global guidance at high-noise stages to fine-grained residual corrections as the trajectory matures. This induces a causally ordered hierarchy naturally aligned with autoregressive action generation.
       </p>
     </div>
+
     <div class="pipeline-wrap">
-      <img src="./media/pipeline.png" alt="CATok Pipeline">
+      <img src="./media/0506_CATok.png" alt="CATok Architecture Overview">
     </div>
     <p class="figure-caption">
-      <strong>Figure 1.</strong> Overview of the CATok pipeline. <!-- caption -->
+      <strong>Figure 1. CATok Pipeline.</strong> CATok encodes an action chunk with a Dual-Stream Encoder into latent queries, discretizes them via a Bottleneck VQ, and reconstructs actions using a Flow-Matching Decoder with Conditional Annealing. The annealing schedule assigns each token to a distinct stage of the flow trajectory, establishing a coarse-to-fine causal token space.
     </p>
 
-    <!-- ── Main Experiments ── -->
+    <div class="pipeline-wrap" style="margin-top: 24px;">
+      <img src="./media/0506_VLA-CATok.png" alt="VLA-CATok Overview">
+    </div>
+    <p class="figure-caption">
+      <strong>Figure 2. VLA-CATok.</strong> VLA-CATok feeds visual, language, and proprioceptive tokens into a VLM backbone to autoregressively predict causal action tokens. A frozen MMDiT flow-matching decoder reconstructs the final continuous action. Discrete tokens serve as the sole interface, naturally insulating the VLM's pretrained knowledge from action-specific gradients.
+    </p>
+
+    <!-- Experiments -->
     <div class="tagline" id="experiments">Main Experiments</div>
     <div class="section">
       <p>
-        <!-- DESCRIBE EXPERIMENT SETUP / FINDINGS HERE -->
+        We evaluate CATok on three simulation benchmarks&mdash;LIBERO, SimplerEnv (Simpler-Bridge), and RoboTwin 2.0&mdash;against three representative tokenizer baselines: <strong>BIN</strong> (uniform per-dimension discretization), <strong>FAST</strong> (DCT-based compression with BPE tokenization), and <strong>OAT</strong> (learned fixed-length tokenizer with prefix-based decoding).
+      </p>
+      <p>
+        <strong>CATok consistently improves VLA success rates across all benchmarks.</strong> On LIBERO, CATok achieves a 95.9% average success rate, outperforming all baselines and showing the largest gains on long-horizon tasks (LIBERO-Long: 91.0% vs. 90.1% for FAST). This demonstrates that causal ordering enables autoregressive policies to model long-range temporal dependencies more effectively.
+      </p>
+      <p>
+        <strong>CATok also improves training efficiency.</strong> It consistently reaches higher success rates at the same training step count, attributable to its stage-wise token factorization that makes each token prediction more informative for trajectory generation.
       </p>
     </div>
 
+    <div style="overflow-x: auto; margin: 20px 0;">
     <table class="results-table">
       <thead>
         <tr>
-          <th>Method</th>
-          <th>Metric 1</th>
-          <th>Metric 2</th>
-          <th>Metric 3</th>
+          <th rowspan="2" style="vertical-align:bottom;">Method</th>
+          <th colspan="5" style="text-align:center; border-bottom: 1px solid var(--border);">LIBERO</th>
+          <th colspan="5" style="text-align:center; border-bottom: 1px solid var(--border);">Simpler-Bridge</th>
+          <th colspan="2" style="text-align:center; border-bottom: 1px solid var(--border);">RoboTwin 2.0</th>
+        </tr>
+        <tr>
+          <th>Spatial</th><th>Object</th><th>Goal</th><th>Long</th><th>Avg.</th>
+          <th>Spoon</th><th>Carrot</th><th>Stack</th><th>Eggplant</th><th>Avg.</th>
+          <th>Clean</th><th>Rand.</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Baseline A</td>
-          <td>00.0</td>
-          <td>00.0</td>
-          <td>00.0</td>
+          <td>BIN</td>
+          <td>0.586</td><td>0.878</td><td>0.680</td><td>0.604</td><td>0.687</td>
+          <td class="best">0.542</td><td>0.333</td><td>0.208</td><td class="best">0.708</td><td>0.448</td>
+          <td>—</td><td>—</td>
         </tr>
         <tr>
-          <td>Baseline B</td>
-          <td>00.0</td>
-          <td>00.0</td>
-          <td>00.0</td>
+          <td>FAST</td>
+          <td>0.960</td><td class="best">0.998</td><td class="best">0.962</td><td>0.901</td><td>0.955</td>
+          <td>0.500</td><td>0.375</td><td>0.375</td><td>0.625</td><td>0.469</td>
+          <td class="best">0.478</td><td class="best">0.478</td>
         </tr>
         <tr>
+          <td>OAT</td>
+          <td>0.428</td><td>0.876</td><td>0.704</td><td>0.276</td><td>0.571</td>
+          <td>0.417</td><td>0.208</td><td>0.167</td><td>0.667</td><td>0.365</td>
+          <td>—</td><td>—</td>
+        </tr>
+        <tr style="background: rgba(108,142,191,0.07);">
           <td><strong>CATok (Ours)</strong></td>
-          <td class="best">00.0</td>
-          <td class="best">00.0</td>
-          <td class="best">00.0</td>
+          <td class="best">0.978</td><td>0.994</td><td>0.954</td><td class="best">0.910</td><td class="best">0.959</td>
+          <td>0.458</td><td class="best">0.417</td><td class="best">0.542</td><td>0.542</td><td class="best">0.490</td>
+          <td>—</td><td>—</td>
         </tr>
       </tbody>
     </table>
+    </div>
     <p class="figure-caption">
-      Table 1. Main quantitative results. <!-- caption -->
+      Table 1. Simulation benchmarking results. CATok consistently outperforms baseline tokenizers across all benchmarks. <span class="best">Blue bold</span> values indicate best results per column.
     </p>
 
-    <!-- Optional: experiment videos -->
-    <div class="video-grid-2">
-      <figure>
-        <video src="./media/exp1.mp4" controls muted playsinline autoplay loop></video>
-        <figcaption>Experiment 1 description.</figcaption>
-      </figure>
-      <figure>
-        <video src="./media/exp2.mp4" controls muted playsinline autoplay loop></video>
-        <figcaption>Experiment 2 description.</figcaption>
-      </figure>
+    <div class="pipeline-wrap" style="margin-top: 32px;">
+      <img src="./media/training_efficiency.png" alt="Training Efficiency">
     </div>
+    <p class="figure-caption">
+      <strong>Figure 3. Training efficiency on Simpler-Bridge.</strong> CATok achieves higher success rates with fewer training steps. The causal token structure provides a natural stage-wise factorization that makes each token prediction more informative for trajectory generation.
+    </p>
 
-    <!-- ── Causal Tokens ── -->
+    <div class="pipeline-wrap" style="margin-top: 24px;">
+      <img src="./media/exp_tokenizer_v3.png" alt="Intrinsic Tokenizer Properties">
+    </div>
+    <p class="figure-caption">
+      <strong>Figure 4. Intrinsic properties of action tokenizers.</strong> (a&ndash;c) CATok<sub>8</sub> achieves the highest VRR&times;CR score (16.85), outperforming all baselines at the same compression level. (d&ndash;e) Encode and decode latencies on log scale&mdash;CATok achieves lower latency than FAST with comparable or better downstream performance.
+    </p>
+
+    <!-- Causal Tokens -->
     <div class="tagline" id="causal-tokens">Can CATok Produce Causal Tokens with Generative Semantics?</div>
     <div class="section">
       <p>
-        <!-- PASTE SECTION CONTENT HERE -->
+        We analyze two complementary questions: (1) are CATok tokens causally ordered? and (2) do they carry distinct generative semantics across positions?
+      </p>
+
+      <p>
+        <strong>Causal Predictive Ordering.</strong> We train a lightweight action-only autoregressive transformer per tokenizer and measure the per-token Shannon entropy H<sub>k</sub> on held-out LIBERO&ndash;Bridge chunks. If tokens are causally ordered, entropy should decrease as more prefix tokens are observed&mdash;each additional token reducing uncertainty over the next.
+      </p>
+      <p>
+        As shown in Figure 5(a), <em>CATok fwd</em> exhibits a clear decreasing entropy trend, while <em>CATok rev</em> (same tokens predicted in reverse order) shows the opposite trend&mdash;confirming the learned ordering is directional and causal, not arbitrary. FAST is nearly flat and BIN mildly increases, indicating neither induces meaningful causal structure.
+      </p>
+
+      <p>
+        <strong>Stage-wise Generative Semantics.</strong> We visualize VQ embeddings from 32,768 LIBERO action chunks via t-SNE (Figure 5(b)). Embeddings are clearly organized by token slot: early slots form smooth elongated regions, middle slots become more diffuse, and late slots form compact separated clusters. This slot-dependent geometry shows that CATok tokens occupy distinct generative roles&mdash;progressing from shared motion factors to specialized residual corrections&mdash;rather than being exchangeable codebook indices.
+      </p>
+      <p>
+        We further reconstruct action chunks from token prefixes of increasing length (n &isin; {1, 6, 11, 16}). As shown in Figure 5(c), adding tokens induces coherent trajectory updates&mdash;from structural changes in spatial, rotation, and gripper dimensions to finer residual refinements&mdash;confirming each token serves as a meaningful generative increment.
+      </p>
+      <p>
+        Together, these probes show that CATok learns a coarse-to-fine generative hierarchy aligned with autoregressive modeling: earlier tokens capture shared global structure while later tokens contribute increasingly specialized residual refinements.
       </p>
     </div>
 
-    <img src="./media/causal_tokens.png" alt="Causal Token Visualization" class="full-img">
+    <div class="pipeline-wrap">
+      <img src="./media/exp_tokenizer_v3.png" alt="Causal Token Analysis">
+    </div>
     <p class="figure-caption">
-      <strong>Figure 2.</strong> Visualization of causal tokens produced by CATok. <!-- caption -->
+      <strong>Figure 5. CATok produces causal tokens with generative semantics.</strong>
+      <strong>(a) Causal ordering:</strong> entropy decreases in the forward token order and increases in reverse, while FAST and BIN show weaker positional structure.
+      <strong>(b) Token embedding geometry:</strong> t-SNE map shows clear slot-dependent organization progressing from smooth early-token regions to compact late-token clusters.
+      <strong>(c) Prefix reconstruction:</strong> increasing token prefixes produce structured trajectory updates, with each token contributing a meaningful generative increment to the decoded action.
     </p>
 
   </div><!-- end main-content -->
