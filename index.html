@@ -17,6 +17,7 @@
       <li><a href="#pipeline">Method</a></li>
       <li><a href="#experiments">Main Results</a></li>
       <li><a href="#causal-tokens">Analysis</a></li>
+      <li><a href="#realworld">Real-World Deployment</a></li>
     </ul>
   </div>
 
@@ -185,11 +186,137 @@
       <strong>(c) Prefix reconstruction:</strong> increasing token prefixes produce structured trajectory updates, with each token contributing a meaningful generative increment to the decoded action.
     </p>
 
+    <!-- Real-World Deployment -->
+    <div class="tagline" id="realworld">Real-World Deployment</div>
+
+    <div class="subsection">Experimental Setup</div>
+    <div class="section">
+      <p>
+        To verify that CATok transfers to real-robot deployment under camera noise, lighting variation, and hardware differences, we design a suite of real-robot evaluation tasks. The VLA built on CATok as its tokenizer consistently outperforms the QwenFAST baseline, with significant gains in spatial generalization, color generalization, and long-horizon task completion.
+      </p>
+      <p>
+        We collect 362 trajectories of <em>"pick up the yellow cup and place it on the plate."</em> and 220 trajectories of <em>"stack the cups."</em> Using Qwen3.5-VL as the backbone, we train two VLAs that differ only in their tokenizer&mdash;QwenFAST and QwenCATok. CATok is pretrained on the collected real-robot data together with InternA1 joint data, so that its action reconstruction accuracy matches that of FAST. We evaluate on three task suites:
+      </p>
+      <ul>
+        <li><strong>Pick-Spatial.</strong> The task is to pick up the yellow cup and place it on the plate. We fix 10 relative cup-and-plate positions; each model rolls out twice per position (20 rollouts total) and we report the success rate. Tests spatial generalization.</li>
+        <li><strong>Pick-Color.</strong> The task is to pick up the red cup and place it on the plate. The cup-plate relative position is fixed, and only the yellow cup seen during training is replaced with a red cup; each model rolls out 10 times. The training set contains no trajectories of picking up a red cup. Tests color generalization.</li>
+        <li><strong>Stack-Long.</strong> A long-horizon task: the robot must first pick up the red cup and stack it onto the yellow cup, then pick up the pink cup and stack it again. The relative positions of the three cups are fixed; each model rolls out 40 times. Tests long-horizon task completion.</li>
+      </ul>
+    </div>
+
+    <div class="subsection">Demo</div>
+    <div class="section">
+      <p>
+        We deploy <strong>QwenCATok</strong> (our causal action tokenizer integrated into a VLA policy) alongside the <strong>QwenFAST</strong> baseline on a real Franka manipulator across three contact-rich tasks&mdash;<em>stack</em>, <em>pick</em>, and <em>pick-red</em>. Each cell below is a single, unedited end-to-end rollout.
+      </p>
+    </div>
+
+    <div class="demo-toolbar">
+      <button id="speed-toggle" class="speed-btn" type="button" title="Toggle playback speed" aria-label="Toggle playback speed">1&times;</button>
+    </div>
+
+    <div class="demo-matrix">
+      <span class="dm-corner"></span>
+      <span class="dm-colhead">Stack</span>
+      <span class="dm-colhead">Pick</span>
+      <span class="dm-colhead">Pick (Red)</span>
+
+      <span class="dm-rowhead">QwenCATok<span class="dm-ours">Ours</span></span>
+      <figure class="dm-cell">
+        <video autoplay loop muted playsinline controls preload="metadata">
+          <source src="./media/catok_stack_success.mp4#t=0.1" type="video/mp4">
+        </video>
+        <figcaption>QwenCATok &mdash; Stack</figcaption>
+      </figure>
+      <figure class="dm-cell">
+        <video autoplay loop muted playsinline controls preload="metadata">
+          <source src="./media/catok_pick_success.mp4#t=0.1" type="video/mp4">
+        </video>
+        <figcaption>QwenCATok &mdash; Pick</figcaption>
+      </figure>
+      <figure class="dm-cell">
+        <video autoplay loop muted playsinline controls preload="metadata">
+          <source src="./media/catok_pick_red_success.mp4#t=0.1" type="video/mp4">
+        </video>
+        <figcaption>QwenCATok &mdash; Pick (Red)</figcaption>
+      </figure>
+
+      <span class="dm-rowhead">QwenFAST</span>
+      <figure class="dm-cell">
+        <video autoplay loop muted playsinline controls preload="metadata">
+          <source src="./media/fast_stack_success.mp4#t=0.1" type="video/mp4">
+        </video>
+        <figcaption>QwenFAST &mdash; Stack</figcaption>
+      </figure>
+      <figure class="dm-cell">
+        <video autoplay loop muted playsinline controls preload="metadata">
+          <source src="./media/fast_pick_success.mp4#t=0.1" type="video/mp4">
+        </video>
+        <figcaption>QwenFAST &mdash; Pick</figcaption>
+      </figure>
+      <figure class="dm-cell">
+        <video autoplay loop muted playsinline controls preload="metadata">
+          <source src="./media/fast_pick_red_success.mp4#t=0.1" type="video/mp4">
+        </video>
+        <figcaption>QwenFAST &mdash; Pick (Red)</figcaption>
+      </figure>
+    </div>
+    <p class="figure-caption">
+      <strong>Figure 7. Real-world rollout comparison.</strong> Top row: <strong>QwenCATok</strong> (ours). Bottom row: <strong>QwenFAST</strong> baseline. Columns (left to right): stack, pick, pick-red.
+    </p>
+
+    <div style="overflow-x: auto; margin: 20px 0;">
+      <table class="results-table">
+        <thead>
+          <tr><th>Method</th><th>Pick-Spatial</th><th>Pick-Color</th><th>Stack-Long</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>QwenFAST</td>
+            <td>0.45</td><td>0.30</td><td>0.275</td>
+          </tr>
+          <tr style="background: rgba(108,142,191,0.07);">
+            <td><strong>QwenCATok (Ours)</strong></td>
+            <td class="best">0.65</td><td class="best">0.50</td><td class="best">0.475</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="figure-caption">
+      <strong>Table 2. Real-world success rates.</strong> QwenCATok outperforms QwenFAST on all three tasks with a uniform +20pp absolute improvement. <span class="best">Blue bold</span> marks the best result per column.
+    </p>
+
+    <div class="section" style="margin-top: 8px;">
+      <p>
+        These real-world gains corroborate the mechanisms identified in simulation. CATok's causally structured token space&mdash;each token encoding a semantically distinct, coarse-to-fine generative stage&mdash;aligns the discrete bottleneck with the autoregressive backbone, and this semantic alignment generalizes to real-world perturbations: spatial repositioning (Pick-Spatial, 0.45&rarr;0.65, +44% relative) and out-of-distribution color (Pick-Color, 0.30&rarr;0.50, +67% relative). The largest gain appears on Stack-Long (0.275&rarr;0.475, +73% relative), consistent with the same stage-wise causal factorization that drives training efficiency in simulation&mdash;by making each token prediction more informative, causal token ordering lets the policy better capture the long-range temporal dependencies required for compositional, long-horizon tasks. Overall, CATok's structural properties&mdash;semantic token alignment and stage-wise causal factorization&mdash;translate from simulation into robust and consistent real-world gains.
+      </p>
+    </div>
+
   </div><!-- end main-content -->
 
   <div class="footer">
     Website template adapted from <a href="https://videomimic.net/" target="_blank">VideoMimic</a>.
   </div>
+
+  <script>
+    (function () {
+      var speeds = [1, 2, 4];
+      var idx = 0;
+      var btn = document.getElementById('speed-toggle');
+      var videos = document.querySelectorAll('.demo-matrix video');
+      function apply() {
+        var r = speeds[idx];
+        videos.forEach(function (v) { v.playbackRate = r; });
+        btn.textContent = r + '×';
+        btn.classList.toggle('active', r !== 1);
+      }
+      btn.addEventListener('click', function () {
+        idx = (idx + 1) % speeds.length;
+        apply();
+      });
+      apply();
+    })();
+  </script>
 
 </body>
 </html>
