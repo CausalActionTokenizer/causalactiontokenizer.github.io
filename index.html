@@ -198,6 +198,25 @@
       <p>
         We collect 362 trajectories of <em>"pick up the yellow cup and place it on the plate."</em> and 220 trajectories of <em>"stack the cups."</em> Using Qwen3.5-VL as the backbone, we train two VLAs that differ only in their tokenizer&mdash;QwenFAST and QwenCATok. CATok is pretrained on the collected real-robot data together with InternA1 joint data, so that its action reconstruction accuracy matches that of FAST. We evaluate on three task suites:
       </p>
+
+      <div class="scene-grid">
+        <figure>
+          <img src="./media/setup_pick.jpg" alt="Pick-Spatial scene layout">
+          <figcaption>Pick-Spatial</figcaption>
+        </figure>
+        <figure>
+          <img src="./media/setup_pick-red.jpg" alt="Pick-Color scene layout">
+          <figcaption>Pick-Color</figcaption>
+        </figure>
+        <figure>
+          <img src="./media/setup_stack.jpg" alt="Stack-Long scene layout">
+          <figcaption>Stack-Long</figcaption>
+        </figure>
+      </div>
+      <p class="figure-caption">
+        <strong>Figure 7. Scene layouts for the three real-robot task suites.</strong> Left to right: Pick-Spatial, Pick-Color, Stack-Long.
+      </p>
+
       <ul>
         <li><strong>Pick-Spatial.</strong> The task is to pick up the yellow cup and place it on the plate. We fix 10 relative cup-and-plate positions; each model rolls out twice per position (20 rollouts total) and we report the success rate. Tests spatial generalization.</li>
         <li><strong>Pick-Color.</strong> The task is to pick up the red cup and place it on the plate. The cup-plate relative position is fixed, and only the yellow cup seen during training is replaced with a red cup; each model rolls out 10 times. The training set contains no trajectories of picking up a red cup. Tests color generalization.</li>
@@ -208,7 +227,7 @@
     <div class="subsection">Demo</div>
     <div class="section">
       <p>
-        We deploy <strong>QwenCATok</strong> (our causal action tokenizer integrated into a VLA policy) alongside the <strong>QwenFAST</strong> baseline on a real Franka manipulator across three contact-rich tasks&mdash;<em>stack</em>, <em>pick</em>, and <em>pick-red</em>. Each cell below is a single, unedited end-to-end rollout.
+        We deploy <strong>QwenCATok</strong> (our causal action tokenizer integrated into a VLA policy) alongside the <strong>QwenFAST</strong> baseline on a real Franka manipulator across three contact-rich tasks&mdash;<em>pick</em>, <em>pick-red</em>, and <em>stack</em>. Each cell below is a single, unedited end-to-end rollout.
       </p>
     </div>
 
@@ -218,17 +237,11 @@
 
     <div class="demo-matrix" id="demo">
       <span class="dm-corner"></span>
-      <span class="dm-colhead">Stack</span>
       <span class="dm-colhead">Pick</span>
       <span class="dm-colhead">Pick (Red)</span>
+      <span class="dm-colhead">Stack</span>
 
       <span class="dm-rowhead">QwenCATok<span class="dm-ours">Ours</span></span>
-      <figure class="dm-cell">
-        <video autoplay loop muted playsinline controls preload="metadata">
-          <source src="./media/catok_stack_success.mp4#t=0.1" type="video/mp4">
-        </video>
-        <figcaption>QwenCATok &mdash; Stack</figcaption>
-      </figure>
       <figure class="dm-cell">
         <video autoplay loop muted playsinline controls preload="metadata">
           <source src="./media/catok_pick_success.mp4#t=0.1" type="video/mp4">
@@ -241,14 +254,14 @@
         </video>
         <figcaption>QwenCATok &mdash; Pick (Red)</figcaption>
       </figure>
-
-      <span class="dm-rowhead">QwenFAST</span>
       <figure class="dm-cell">
         <video autoplay loop muted playsinline controls preload="metadata">
-          <source src="./media/fast_stack_success.mp4#t=0.1" type="video/mp4">
+          <source src="./media/catok_stack_success.mp4#t=0.1" type="video/mp4">
         </video>
-        <figcaption>QwenFAST &mdash; Stack</figcaption>
+        <figcaption>QwenCATok &mdash; Stack</figcaption>
       </figure>
+
+      <span class="dm-rowhead">QwenFAST</span>
       <figure class="dm-cell">
         <video autoplay loop muted playsinline controls preload="metadata">
           <source src="./media/fast_pick_success.mp4#t=0.1" type="video/mp4">
@@ -261,9 +274,15 @@
         </video>
         <figcaption>QwenFAST &mdash; Pick (Red)</figcaption>
       </figure>
+      <figure class="dm-cell">
+        <video autoplay loop muted playsinline controls preload="metadata">
+          <source src="./media/fast_stack_success.mp4#t=0.1" type="video/mp4">
+        </video>
+        <figcaption>QwenFAST &mdash; Stack</figcaption>
+      </figure>
     </div>
     <p class="figure-caption">
-      <strong>Figure 7. Real-world rollout comparison.</strong> Top row: <strong>QwenCATok</strong> (ours). Bottom row: <strong>QwenFAST</strong> baseline. Columns (left to right): stack, pick, pick-red.
+      <strong>Figure 8. Real-world rollout comparison.</strong> Top row: <strong>QwenCATok</strong> (ours). Bottom row: <strong>QwenFAST</strong> baseline. Columns (left to right): pick, pick-red, stack.
     </p>
 
     <div style="overflow-x: auto; margin: 20px 0;">
