@@ -17,6 +17,7 @@
       <li><a href="#pipeline">Method</a></li>
       <li><a href="#experiments">Main Results</a></li>
       <li><a href="#causal-tokens">Analysis</a></li>
+      <li><a href="#causality-validation">Causality Validation</a></li>
       <li><a href="#realworld">Real-World Deployment</a></li>
     </ul>
   </div>
@@ -187,6 +188,75 @@
       <strong>(c) Prefix reconstruction:</strong> increasing token prefixes produce structured trajectory updates, with each token contributing a meaningful generative increment to the decoded action.
     </p>
 
+    <!-- Causality Validation -->
+    <div class="tagline" id="causality-validation">Causality Validation</div>
+    <div class="section">
+      <p>
+        The analyses above (Figure 6) provide indirect evidence&mdash;entropy ordering, embedding geometry, and prefix reconstruction&mdash;that CATok tokens carry a coarse-to-fine structure. A natural question is whether this structure reflects <em>distinct generative roles</em> for individual token positions, or whether the annealing schedule merely produces a useful nested ordering with substantial information redundancy across tokens. To settle this, we conduct a direct <strong>token-swap intervention</strong> on the native flow-matching decoder.
+      </p>
+    </div>
+
+    <div class="subsection">Experimental Setup</div>
+    <div class="section">
+      <p>
+        We use the trained CATok tokenizer checkpoint (<em>K</em>=32, codebook 4096, horizon 20) together with its <strong>native MMDiT flow-matching velocity network</strong> <em>v<sub>&theta;</sub></em> and ODE decoder <em>D</em>&mdash;the same modules used at inference, <em>not</em> a separately trained prefix decoder. On 128 held-out action chunks (Franka, 7-DoF + gripper), we encode each chunk into its token-embedding sequence <em>Q</em> = (<em>q</em><sub>1</sub>, &hellip;, <em>q<sub>K</sub></em>). For each position <em>k</em>, we replace <em>q<sub>k</sub></em> with the embedding at the same position from a <em>donor</em> chunk&mdash;keeping the replacement within the empirical distribution of that slot&mdash;while holding the flow state <em>x<sub>t</sub></em>, flow time <em>t</em>, and the noise realization fixed. This isolates the causal effect of a single token on the decoder's prediction.
+      </p>
+    </div>
+
+    <div class="subsection">Analysis A &mdash; Token &times; Flow-Time Influence Matrix</div>
+    <div class="section">
+      <p>
+        For each token <em>k</em> and flow time <em>t</em> we measure the influence
+        &Delta;<sub>k</sub>(<em>t</em>) = MSE(<em>v<sub>&theta;</sub></em>(<em>x<sub>t</sub></em>, <em>t</em>, <em>Q</em><sup>swap(k)</sup>), <em>x</em><sub>1</sub>&minus;<em>x</em><sub>0</sub>) &minus; MSE(<em>v<sub>&theta;</sub></em>(<em>x<sub>t</sub></em>, <em>t</em>, <em>Q</em>), <em>x</em><sub>1</sub>&minus;<em>x</em><sub>0</sub>),
+        i.e., the increase in velocity-prediction error caused by swapping token <em>k</em> at flow time <em>t</em>. Because the conditional-annealing schedule masks token <em>k</em> outside its active range, the raw matrix has triangular support; we therefore <strong>normalize within each token's active range</strong> and examine where the influence concentrates, rather than treating visibility itself as evidence of specialization.
+      </p>
+    </div>
+
+    <div class="pipeline-wrap">
+      <img src="./media/causality_influence_matrix.png" alt="Token x flow-time influence matrix">
+    </div>
+    <p class="figure-caption">
+      <strong>Figure 7. Token &times; flow-time influence matrix &Delta;<sub>k</sub>(t).</strong> Left: raw influence. Right: normalized within each token's active range. The matrix has triangular support (token <em>k</em> is visible only for <em>t</em> &lt; (<em>k</em>+1)/<em>K</em>, confirming the conditional-annealing schedule &kappa;(t)=<em>tK</em>), and each token's influence concentrates near its own on-switch boundary rather than spreading uniformly across its active range.
+    </p>
+
+    <div class="section">
+      <p>
+        Three findings establish distinct, stage-specific generative roles:
+      </p>
+      <ul>
+        <li><strong>Triangular support.</strong> Token <em>k</em> is visible only for <em>t</em> &lt; (<em>k</em>+1)/<em>K</em>, confirming the conditional-annealing schedule &kappa;(t) = <em>tK</em> with suffix masking. Swapping a token masked-out at time <em>t</em> produces &Delta; &asymp; 0 by construction, so non-trivial influence appears only where the token is actually active.</li>
+        <li><strong>Sparsity, not redundancy.</strong> Only 72 of 640 (<em>k</em>, <em>t</em>) cells exceed 5% of the maximum |&Delta;|. The influence is concentrated in a small set of (token, stage) pairs rather than spread broadly. If tokens carried redundant information, swapping any token would broadly perturb the prediction; the sparse pattern rules out the "substantial information redundancy" alternative.</li>
+        <li><strong>Peak at the token's own flow stage.</strong> For each token <em>k</em>, the flow time of peak |&Delta;<sub>k</sub>(<em>t</em>)| within its active range is <em>t*</em> &asymp; <em>k</em>/<em>K</em> (<strong>corr(<em>k</em>, <em>t*</em>) = 0.985</strong>, slope &asymp; 1/<em>K</em>). Early tokens peak at high-noise (coarse) stages; late tokens peak at low-noise (fine) stages&mdash;exactly the coarse-to-fine specialization the annealing schedule is designed to induce.</li>
+      </ul>
+    </div>
+
+    <div class="subsection">Analysis B &mdash; Trajectory Decomposition via the Native ODE Decoder</div>
+    <div class="section">
+      <p>
+        We additionally decode each intervened sequence with the <strong>native ODE decoder</strong> <em>D</em> and decompose the trajectory change &Delta;A = <em>D</em>(<em>Q</em><sup>swap(k)</sup>) &minus; <em>D</em>(<em>Q</em>) into low-frequency DCT components (coarse) versus high-frequency DCT, local temporal differences, rotation, and gripper components (fine).
+      </p>
+    </div>
+
+    <div class="pipeline-wrap" style="margin-top: 24px;">
+      <img src="./media/causality_decomposition.png" alt="Coarse vs fine decomposition per swapped token" style="width:100%; display:block;">
+    </div>
+    <p class="figure-caption">
+      <strong>Figure 8. Coarse vs. fine trajectory change per swapped token.</strong> Left: low-frequency DCT (coarse) vs. high-frequency DCT (fine). Right: global displacement vs. rotation/gripper. Shaded bands are bootstrap 95% CIs over 128 chunks.
+    </p>
+
+    <div class="pipeline-wrap" style="margin-top: 24px;">
+      <img src="./media/causality_traj_perdim.png" alt="Per-dimension trajectory reconstruction" style="width:100%; display:block;">
+    </div>
+    <p class="figure-caption">
+      <strong>Figure 9. Per-dimension trajectory reconstruction.</strong> Rows: 7 joints + gripper. Columns: swap position <em>k</em> from 0 (early) to 31 (late). Gray dashed = baseline; colored solid = swapped. Early-token swaps barely move the trajectory; late-token swaps produce large, dimension-specific changes, consistent with the active-span asymmetry.
+    </p>
+
+    <div class="section" style="margin-top: 8px;">
+      <p>
+        <strong>Interpretation.</strong> As anticipated, the raw trajectory-change magnitudes are <em>span-confounded</em>: late tokens are visible for more of the flow trajectory, so they move the final decoded trajectory more in <em>every</em> metric. The per-flow-stage concentration measured in Analysis A&mdash;which is span-normalized by construction (each token's influence is compared only within its own active range)&mdash;is therefore the cleaner test of stage specialization. Analysis A shows that each token's influence peaks at its own flow stage (<em>t*</em> &asymp; <em>k</em>/<em>K</em>, corr 0.985), establishing that individual token positions acquire <strong>distinct coarse-to-fine generative roles</strong> rather than constituting a redundant nested ordering.
+      </p>
+    </div>
+
     <!-- Real-World Deployment -->
     <div class="tagline" id="realworld">Real-World Deployment</div>
 
@@ -214,7 +284,7 @@
         </figure>
       </div>
       <p class="figure-caption">
-        <strong>Figure 7. Scene layouts for the three real-robot task suites.</strong> Left to right: Pick-Spatial, Pick-Color, Stack-Long.
+        <strong>Figure 10. Scene layouts for the three real-robot task suites.</strong> Left to right: Pick-Spatial, Pick-Color, Stack-Long.
       </p>
 
       <ul>
@@ -282,7 +352,7 @@
       </figure>
     </div>
     <p class="figure-caption">
-      <strong>Figure 8. Real-world rollout comparison.</strong> Top row: <strong>QwenCATok</strong> (ours). Bottom row: <strong>QwenFAST</strong> baseline. Columns (left to right): pick, pick-red, stack.
+      <strong>Figure 11. Real-world rollout comparison.</strong> Top row: <strong>QwenCATok</strong> (ours). Bottom row: <strong>QwenFAST</strong> baseline. Columns (left to right): pick, pick-red, stack.
     </p>
 
     <div style="overflow-x: auto; margin: 20px 0;">
