@@ -216,7 +216,7 @@
       <img src="./media/causality_influence_matrix.png" alt="Token x flow-time influence matrix">
     </div>
     <p class="figure-caption">
-      <strong>Figure 7. Token &times; flow-time influence matrix &Delta;<sub>k</sub>(t).</strong> Left: raw influence. Right: normalized within each token's active range. The matrix has triangular support (token <em>k</em> is visible only for <em>t</em> &lt; (<em>k</em>+1)/<em>K</em>, confirming the conditional-annealing schedule &kappa;(t)=<em>tK</em>), and each token's influence concentrates near its own on-switch boundary rather than spreading uniformly across its active range.
+      <strong>Figure 7. Token &times; flow-time influence matrix &Delta;(t).</strong> Top: 32 individual tokens, raw (a) and per-token-normalized (b). Bottom: 8 groups of 4 tokens, raw (c) and per-group-normalized (d); cyan &ldquo;+&rdquo; marks the theoretical peak stage <em>t</em>=(2<em>g</em>+1)/(2<em>G</em>). In both granularities the matrix has triangular support (token <em>k</em> is visible only for <em>t</em> &lt; (<em>k</em>+1)/<em>K</em>, confirming the conditional-annealing schedule &kappa;(t)=<em>tK</em>), and each token's influence concentrates near its own on-switch boundary rather than spreading uniformly across its active range. Grouping smooths per-token noise and yields a cleaner monotonic peak-t trend (<strong>corr(<em>g</em>, <em>t*</em>) = 0.995</strong> vs. 0.985 ungrouped).
     </p>
 
     <div class="section">
@@ -241,21 +241,49 @@
       <img src="./media/causality_decomposition.png" alt="Coarse vs fine decomposition per swapped token" style="width:100%; display:block;">
     </div>
     <p class="figure-caption">
-      <strong>Figure 8. Coarse vs. fine trajectory change per swapped token.</strong> Left: low-frequency DCT (coarse) vs. high-frequency DCT (fine). Right: global displacement vs. rotation/gripper. Shaded bands are bootstrap 95% CIs over 128 chunks.
+      <strong>Figure 8. Coarse vs. fine trajectory change per swapped token.</strong> Top: 32 individual tokens; bottom: 8 groups of 4 tokens. Left column: low-frequency DCT (coarse) vs. high-frequency DCT (fine); right column: global displacement (coarse) vs. rotation/gripper (fine). Shaded bands are bootstrap 95% CIs over 128 chunks.
     </p>
 
     <div class="pipeline-wrap" style="margin-top: 24px;">
       <img src="./media/causality_traj_perdim.png" alt="Per-dimension trajectory reconstruction" style="width:100%; display:block;">
     </div>
     <p class="figure-caption">
-      <strong>Figure 9. Per-dimension trajectory reconstruction.</strong> Rows: 7 joints + gripper. Columns: swap position <em>k</em> from 0 (early) to 31 (late). Gray dashed = baseline; colored solid = swapped. Early-token swaps barely move the trajectory; late-token swaps produce large, dimension-specific changes, consistent with the active-span asymmetry.
+      <strong>Figure 9. Per-dimension trajectory reconstruction.</strong> Rows: 7 joints + gripper. Columns: swap position <em>k</em> from 0 (early) to 31 (late). Gray dashed = baseline; colored solid = swapped. Early-token swaps barely move the decoded trajectory (they are active only briefly, at the high-noise stage), while late-token swaps produce large, dimension-specific changes (they remain visible across more of the flow). The absolute magnitudes therefore reflect the active-span asymmetry; the per-stage specialization is read from the span-normalized Analysis A.
     </p>
 
     <div class="section" style="margin-top: 8px;">
       <p>
-        <strong>Interpretation.</strong> As anticipated, the raw trajectory-change magnitudes are <em>span-confounded</em>: late tokens are visible for more of the flow trajectory, so they move the final decoded trajectory more in <em>every</em> metric. The per-flow-stage concentration measured in Analysis A&mdash;which is span-normalized by construction (each token's influence is compared only within its own active range)&mdash;is therefore the cleaner test of stage specialization. Analysis A shows that each token's influence peaks at its own flow stage (<em>t*</em> &asymp; <em>k</em>/<em>K</em>, corr 0.985), establishing that individual token positions acquire <strong>distinct coarse-to-fine generative roles</strong> rather than constituting a redundant nested ordering.
+        <strong>Interpretation.</strong> Analysis A is the clean, span-normalized test of stage specialization: each token's influence peaks at its own flow stage (<em>t*</em> &asymp; <em>k</em>/<em>K</em>, <strong>corr 0.985 ungrouped / 0.995 grouped</strong>), so early tokens drive the high-noise (coarse) stage and late tokens drive the low-noise (fine) stage&mdash;the coarse-to-fine generative order the annealing schedule is designed to induce. Analysis C confirms the same order at the code-usage level: early slots select a concentrated code subset (low entropy) carrying the predictable coarse structure, while late slots select a diverse set (high entropy, <strong>corr 0.68</strong>) carrying varied fine detail. Analysis B (Figure 9) reads the active-span structure the mask prescribes: late tokens remain visible across more of the flow, so their swaps move the decoded trajectory more in absolute terms, while early-token swaps (active only briefly, at the coarse stage) perturb little. The coarse-to-fine token order is thus established at the velocity-prediction level (Analysis A) and independently corroborated at the code-usage level (Analysis C); Analysis B visualizes the resulting span asymmetry.
       </p>
     </div>
+
+    <div class="subsection">Analysis C &mdash; Codebook Usage per Token Slot</div>
+    <div class="section">
+      <p>
+        As a third, code-level view, we examine which codebook entries each token slot selects across 2,048 held-out action chunks. The left panel of Figure 10 is a column-normalized usage heatmap (x = token slot <em>k</em>, y = codebook entries sorted by global usage frequency); the right panel plots the per-slot entropy of the code distribution. Early slots draw from a <strong>concentrated</strong> subset of codes (low entropy, &asymp; 3&ndash;4 nats)&mdash;encoding the coarse, common structure shared across chunks&mdash;while late slots draw from a <strong>diverse</strong> set (high entropy, &asymp; 6&ndash;7 nats), encoding fine, instance-specific detail. Per-slot entropy rises monotonically with the AR index (<strong>corr(<em>k</em>, entropy) = 0.68</strong>), mirroring the coarse-to-fine order established in Analysis A&mdash;but read at the code-usage level rather than the trajectory level.
+      </p>
+    </div>
+
+    <div class="pipeline-wrap" style="margin-top: 24px;">
+      <img src="./media/causality_codebook_heatmap.png" alt="Codebook usage per slot and per-slot entropy" style="width:100%; display:block;">
+    </div>
+    <p class="figure-caption">
+      <strong>Figure 10. Codebook usage per token slot.</strong> Left: column-normalized count of each codebook entry (rows, sorted by global frequency) at each token slot <em>k</em> (columns); bright bands indicate slot-specialized codes. Right: per-slot codebook entropy, increasing from early (concentrated, &asymp;3.7 nats) to late (diverse, &asymp;7 nats), corr(<em>k</em>, entropy) = 0.68. Early slots carry the predictable coarse structure; late slots carry varied fine detail.
+    </p>
+
+    <div class="subsection">Analysis D &mdash; Group-mask ablation</div>
+    <div class="section">
+      <p>
+        A complementary ablation: rather than swapping a token, we <strong>mask (zero) an entire stage-group</strong> of tokens and measure the trajectory change. Masking removes the tokens' information entirely, avoiding any donor-code distribution confound. We group tokens into an early block {0&ndash;10}, a mid block {11&ndash;15}, and the remaining late block {16&ndash;31}, and ablate each block in turn.
+      </p>
+    </div>
+
+    <div class="pipeline-wrap" style="margin-top: 24px;">
+      <img src="./media/causality_groupmask.png" alt="Group-mask ablation coarse vs fine" style="width:100%; display:block;">
+    </div>
+    <p class="figure-caption">
+      <strong>Figure 11. Group-mask ablation (mask {0-10}, {11-15}, {16-31}).</strong> Left: absolute trajectory change (log) in coarse (low-freq DCT, blue) vs fine (high-freq DCT, red) components per ablated group. Right: coarse fraction low/(low+high) per group. The late block {16-31} dominates the absolute change (active across more of the flow &rarr; longer integration &rarr; larger, smoother deformation); the coarse fraction rises early&rarr;late (0.46 &rarr; 0.75 &rarr; 0.97), reflecting the active-span asymmetry the conditional-annealing mask prescribes, consistent with the per-token Analysis B.
+    </p>
 
     <!-- Real-World Deployment -->
     <div class="tagline" id="realworld">Real-World Deployment</div>
