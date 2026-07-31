@@ -256,7 +256,7 @@
       <img src="./media/causality_mask_effect_step1.png" alt="K=32 1-step trajectory-change magnitude under single-token masking" style="width:100%; display:block;">
     </div>
     <p class="figure-caption">
-      <strong>Figure 9. K=32, 1-step decode: trajectory-change magnitude under single-token masking (leave-one-out).</strong> Left: per-dimension RMS trajectory change (log color) vs masked token k; right: per-dimension RMS(&Delta;A) vs k (log y, 8 dims). Masking early tokens (k&le;4) changes the trajectory by only ~10^-4 (dark)&mdash;their concentrated, shared codes are redundant and the other tokens compensate; masking late tokens (k&ge;12) changes it by ~10^-1&ndash;10^-0.3, up to ~1000&times; larger, concentrated in the wrist joints and gripper. This is the validation Analysis B predicts: each token carries distinct, non-redundant information, with the contribution magnitude growing along the AR order.
+      <strong>Figure 9. K=32, 1-step decode: trajectory-change magnitude under single-token masking (leave-one-out).</strong> Per-dimension RMS trajectory change (log color) vs masked token k. Masking early tokens (k&le;4) changes the trajectory by only ~10^-4 (dark)&mdash;their concentrated, shared codes are redundant and the other tokens compensate; masking late tokens (k&ge;12) changes it by ~10^-1&ndash;10^-0.3, up to ~1000&times; larger, concentrated in the wrist joints and gripper. This is the validation Analysis B predicts: each token carries distinct, non-redundant information, with the contribution magnitude growing along the AR order.
     </p>
 
     <div class="section" style="margin-top: 8px;">
