@@ -153,6 +153,15 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.section-subtitle {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  margin: 0 0 24px;
+}
+
 /* ── Body text ── */
 .section {
   color: var(--text);

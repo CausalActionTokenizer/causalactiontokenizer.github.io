@@ -190,6 +190,7 @@
 
     <!-- Causality Validation -->
     <div class="tagline" id="causality-validation">Causality Validation</div>
+    <p class="section-subtitle">Distinct, non-redundant token roles &mdash; validated by native-decoder intervention</p>
     <div class="section">
       <p>
         The analyses above (Figure 6) provide indirect evidence&mdash;entropy ordering, embedding geometry, and prefix reconstruction&mdash;that CATok tokens carry a coarse-to-fine structure. A natural question is whether this structure reflects <em>distinct generative roles</em> for individual token positions, or whether the annealing schedule merely produces a useful nested ordering with substantial information redundancy across tokens. To settle this, we conduct a direct <strong>token-swap intervention</strong> on the native flow-matching decoder.
@@ -199,7 +200,7 @@
     <div class="subsection">Experimental Setup</div>
     <div class="section">
       <p>
-        We use the trained CATok tokenizer checkpoint (<em>K</em>=32, codebook 4096, horizon 20) together with its <strong>native MMDiT flow-matching velocity network</strong> <em>v<sub>&theta;</sub></em> and ODE decoder <em>D</em>&mdash;the same modules used at inference, <em>not</em> a separately trained prefix decoder. On 128 held-out action chunks (Franka, 7-DoF + gripper), we encode each chunk into its token-embedding sequence <em>Q</em> = (<em>q</em><sub>1</sub>, &hellip;, <em>q<sub>K</sub></em>). For each position <em>k</em>, we replace <em>q<sub>k</sub></em> with the embedding at the same position from a <em>donor</em> chunk&mdash;keeping the replacement within the empirical distribution of that slot&mdash;while holding the flow state <em>x<sub>t</sub></em>, flow time <em>t</em>, and the noise realization fixed. This isolates the causal effect of a single token on the decoder's prediction.
+        We use the trained CATok tokenizer checkpoint (<em>K</em>=32, codebook 4096, horizon 20) together with its <strong>native MMDiT flow-matching velocity network</strong> <em>v<sub>&theta;</sub></em> and ODE decoder <em>D</em>&mdash;the same modules used at inference, <em>not</em> a separately trained prefix decoder. On 128 held-out action chunks (Franka, 7-DoF + gripper), we encode each chunk into its token-embedding sequence <em>Q</em> = (<em>q</em><sub>1</sub>, &hellip;, <em>q<sub>K</sub></em>) and intervene on one token position at a time while holding the flow state <em>x<sub>t</sub></em>, flow time <em>t</em>, and the noise realization fixed. We use two intervention types: a <strong>donor-swap</strong> (replace <em>q<sub>k</sub></em> with the same-position embedding from another chunk, keeping the replacement within the slot's empirical distribution) for the velocity-level probe (Analysis A), and a <strong>zero-mask / leave-one-out</strong> (set <em>q<sub>k</sub></em> = 0, removing token <em>k</em>'s information entirely) for the trajectory-level probe (Analysis C). The zero-mask is motivated by Analysis B: because the codebook is concentrated in early slots and diverse in late slots, masking tests whether each token's contribution is distinct and non-redundant.
       </p>
     </div>
 
@@ -230,37 +231,10 @@
       </ul>
     </div>
 
-    <div class="subsection">Analysis B &mdash; Trajectory Decomposition via the Native ODE Decoder</div>
+    <div class="subsection">Analysis B &mdash; Codebook Usage per Token Slot</div>
     <div class="section">
       <p>
-        We additionally decode each intervened sequence with the <strong>native ODE decoder</strong> <em>D</em> and decompose the trajectory change &Delta;A = <em>D</em>(<em>Q</em><sup>swap(k)</sup>) &minus; <em>D</em>(<em>Q</em>) into low-frequency DCT components (coarse) versus high-frequency DCT, local temporal differences, rotation, and gripper components (fine).
-      </p>
-    </div>
-
-    <div class="pipeline-wrap" style="margin-top: 24px;">
-      <img src="./media/causality_decomposition.png" alt="Coarse vs fine decomposition per swapped token" style="width:100%; display:block;">
-    </div>
-    <p class="figure-caption">
-      <strong>Figure 8. Coarse vs. fine trajectory change per swapped token.</strong> Top: 32 individual tokens; bottom: 8 groups of 4 tokens. Left column: low-frequency DCT (coarse) vs. high-frequency DCT (fine); right column: global displacement (coarse) vs. rotation/gripper (fine). Shaded bands are bootstrap 95% CIs over 128 chunks.
-    </p>
-
-    <div class="pipeline-wrap" style="margin-top: 24px;">
-      <img src="./media/causality_traj_perdim.png" alt="Per-dimension trajectory reconstruction" style="width:100%; display:block;">
-    </div>
-    <p class="figure-caption">
-      <strong>Figure 9. Per-dimension trajectory reconstruction.</strong> Rows: 7 joints + gripper. Columns: swap position <em>k</em> from 0 (early) to 31 (late). Gray dashed = baseline; colored solid = swapped. Early-token swaps barely move the decoded trajectory (they are active only briefly, at the high-noise stage), while late-token swaps produce large, dimension-specific changes (they remain visible across more of the flow). The absolute magnitudes therefore reflect the active-span asymmetry; the per-stage specialization is read from the span-normalized Analysis A.
-    </p>
-
-    <div class="section" style="margin-top: 8px;">
-      <p>
-        <strong>Interpretation.</strong> Analysis A is the clean, span-normalized test of stage specialization: each token's influence peaks at its own flow stage (<em>t*</em> &asymp; <em>k</em>/<em>K</em>, <strong>corr 0.985 ungrouped / 0.995 grouped</strong>), so early tokens drive the high-noise (coarse) stage and late tokens drive the low-noise (fine) stage&mdash;the coarse-to-fine generative order the annealing schedule is designed to induce. Analysis C confirms the same order at the code-usage level: early slots select a concentrated code subset (low entropy) carrying the predictable coarse structure, while late slots select a diverse set (high entropy, <strong>corr 0.68</strong>) carrying varied fine detail. Analysis B (Figure 9) reads the active-span structure the mask prescribes: late tokens remain visible across more of the flow, so their swaps move the decoded trajectory more in absolute terms, while early-token swaps (active only briefly, at the coarse stage) perturb little. The coarse-to-fine token order is thus established at the velocity-prediction level (Analysis A) and independently corroborated at the code-usage level (Analysis C); Analysis B visualizes the resulting span asymmetry.
-      </p>
-    </div>
-
-    <div class="subsection">Analysis C &mdash; Codebook Usage per Token Slot</div>
-    <div class="section">
-      <p>
-        As a third, code-level view, we examine which codebook entries each token slot selects across 2,048 held-out action chunks. The left panel of Figure 10 is a column-normalized usage heatmap (x = token slot <em>k</em>, y = codebook entries sorted by global usage frequency); the right panel plots the per-slot entropy of the code distribution. Early slots draw from a <strong>concentrated</strong> subset of codes (low entropy, &asymp; 3&ndash;4 nats)&mdash;encoding the coarse, common structure shared across chunks&mdash;while late slots draw from a <strong>diverse</strong> set (high entropy, &asymp; 6&ndash;7 nats), encoding fine, instance-specific detail. Per-slot entropy rises monotonically with the AR index (<strong>corr(<em>k</em>, entropy) = 0.68</strong>), mirroring the coarse-to-fine order established in Analysis A&mdash;but read at the code-usage level rather than the trajectory level.
+        Before intervening at the trajectory level, we first check whether individual token slots carry distinct, non-redundant information by examining which codebook entries each slot selects across 2,048 held-out action chunks. The left panel of Figure 8 is a column-normalized usage heatmap (x = token slot <em>k</em>, y = codebook entries sorted by global usage frequency); the right panel plots the per-slot entropy of the code distribution. Early slots draw from a <strong>concentrated</strong> subset of codes (low entropy, &asymp; 3&ndash;4 nats)&mdash;encoding common structure shared across chunks&mdash;while late slots draw from a <strong>diverse</strong> set (high entropy, &asymp; 6&ndash;7 nats), encoding instance-specific detail. Per-slot entropy rises monotonically with the AR index (<strong>corr(<em>k</em>, entropy) = 0.68</strong>), mirroring the learned stage specialization of Analysis A at the code-usage level. This concentration/diversity gradient motivates the mask intervention in Analysis C: if early tokens share common codes (largely redundant), masking an early token should be compensated by the others, whereas the instance-specific codes of late tokens are non-redundant, so masking a late token should move the decoded trajectory substantially.
       </p>
     </div>
 
@@ -268,22 +242,28 @@
       <img src="./media/causality_codebook_heatmap.png" alt="Codebook usage per slot and per-slot entropy" style="width:100%; display:block;">
     </div>
     <p class="figure-caption">
-      <strong>Figure 10. Codebook usage per token slot.</strong> Left: column-normalized count of each codebook entry (rows, sorted by global frequency) at each token slot <em>k</em> (columns); bright bands indicate slot-specialized codes. Right: per-slot codebook entropy, increasing from early (concentrated, &asymp;3.7 nats) to late (diverse, &asymp;7 nats), corr(<em>k</em>, entropy) = 0.68. Early slots carry the predictable coarse structure; late slots carry varied fine detail.
+      <strong>Figure 8. Codebook usage per token slot.</strong> Left: column-normalized count of each codebook entry (rows, sorted by global frequency) at each token slot <em>k</em> (columns); bright bands indicate slot-specialized codes. Right: per-slot codebook entropy, increasing from early (concentrated, &asymp;3.7 nats) to late (diverse, &asymp;7 nats), corr(<em>k</em>, entropy) = 0.68. Early slots draw from a concentrated code subset (shared common structure, largely redundant); late slots from a diverse set (instance-specific, non-redundant). This learned concentration gradient motivates the leave-one-out mask intervention in Analysis C.
     </p>
 
-    <div class="subsection">Analysis D &mdash; Group-mask ablation</div>
+    <div class="subsection">Analysis C &mdash; Trajectory Intervention under Single-Token Masking</div>
     <div class="section">
       <p>
-        A complementary ablation: rather than swapping a token, we <strong>mask (zero) an entire stage-group</strong> of tokens and measure the trajectory change. Masking removes the tokens' information entirely, avoiding any donor-code distribution confound. We group tokens into an early block {0&ndash;10}, a mid block {11&ndash;15}, and the remaining late block {16&ndash;31}, and ablate each block in turn.
+        Motivated by Analysis B's codebook-concentration gradient, we intervene by <strong>masking (zeroing) one token at a time</strong> and decoding the intervened sequence with the native decoder at <strong>1 step</strong> (matching the deployed VLA&rsquo;s <em>flow_steps=1</em>). If early tokens' shared common codes make them redundant, masking them should be largely compensated; if late tokens' instance-specific codes are non-redundant, masking them should move the trajectory substantially&mdash;a direct test of whether each token's contribution is distinct.
       </p>
     </div>
 
     <div class="pipeline-wrap" style="margin-top: 24px;">
-      <img src="./media/causality_groupmask.png" alt="Group-mask ablation coarse vs fine" style="width:100%; display:block;">
+      <img src="./media/causality_mask_effect_step1.png" alt="K=32 1-step trajectory-change magnitude under single-token masking" style="width:100%; display:block;">
     </div>
     <p class="figure-caption">
-      <strong>Figure 11. Group-mask ablation (mask {0-10}, {11-15}, {16-31}).</strong> Left: absolute trajectory change (log) in coarse (low-freq DCT, blue) vs fine (high-freq DCT, red) components per ablated group. Right: coarse fraction low/(low+high) per group. The late block {16-31} dominates the absolute change (active across more of the flow &rarr; longer integration &rarr; larger, smoother deformation); the coarse fraction rises early&rarr;late (0.46 &rarr; 0.75 &rarr; 0.97), reflecting the active-span asymmetry the conditional-annealing mask prescribes, consistent with the per-token Analysis B.
+      <strong>Figure 9. K=32, 1-step decode: trajectory-change magnitude under single-token masking (leave-one-out).</strong> Left: per-dimension RMS trajectory change (log color) vs masked token k; right: per-dimension RMS(&Delta;A) vs k (log y, 8 dims). Masking early tokens (k&le;4) changes the trajectory by only ~10^-4 (dark)&mdash;their concentrated, shared codes are redundant and the other tokens compensate; masking late tokens (k&ge;12) changes it by ~10^-1&ndash;10^-0.3, up to ~1000&times; larger, concentrated in the wrist joints and gripper. This is the validation Analysis B predicts: each token carries distinct, non-redundant information, with the contribution magnitude growing along the AR order.
     </p>
+
+    <div class="section" style="margin-top: 8px;">
+      <p>
+        <strong>Interpretation.</strong> We do not claim that CATok tokens follow a pre-specified frequency (or any other hand-coded) structure. What the conditional-annealing schedule produces is a <em>learned</em> gradual refinement of the action chunk during flow-matching generation (Figure 5c)&mdash;a holistic, progressive fine-tuning, not a prescribed low-to-high decomposition. The three analyses simply validate that, within this learned process, individual token positions acquire <em>distinct, non-redundant</em> generative roles rather than carrying interchangeable information. Analysis A is the span-normalized velocity-level test: each token's influence peaks at its own flow stage (<em>t*</em> &asymp; <em>k</em>/<em>K</em>, <strong>corr 0.985 ungrouped / 0.995 grouped</strong>), and only 72/640 cells exceed 5% of max |&Delta;|, ruling out &ldquo;substantial information redundancy.&rdquo; Analysis B reads the same learned specialization at the code-usage level: early slots select a concentrated code subset (low entropy, <strong>corr 0.68</strong>), late slots a diverse set. Analysis C, motivated by B, masks one token at a time and decodes at 1 step as a direct validation: masking early tokens barely moves the trajectory (redundant, compensated), while masking late tokens produces large, dimension-specific deformations (~1000&times; larger, in the wrist/gripper)&mdash;the non-redundancy B predicts. The learned gradual-refinement process thus endows tokens with distinct, stage-specific, non-redundant roles, validated at the velocity (A), code-usage (B), and trajectory (C) levels.
+      </p>
+    </div>
 
     <!-- Real-World Deployment -->
     <div class="tagline" id="realworld">Real-World Deployment</div>
