@@ -252,16 +252,9 @@
       </p>
     </div>
 
-    <div class="pipeline-wrap" style="margin-top: 24px;">
-      <img src="./media/causality_mask_effect_step1.png" alt="K=32 1-step trajectory-change magnitude under single-token masking" style="width:100%; display:block;">
-    </div>
-    <p class="figure-caption">
-      <strong>Figure 9. K=32, 1-step decode: trajectory-change magnitude under single-token masking (leave-one-out).</strong> Per-dimension RMS trajectory change (log color) vs masked token k. Masking early tokens (k&le;4) changes the trajectory by only ~10^-4 (dark)&mdash;their concentrated, shared codes are redundant and the other tokens compensate; masking late tokens (k&ge;12) changes it by ~10^-1&ndash;10^-0.3, up to ~1000&times; larger, concentrated in the wrist joints and gripper. This is the validation Analysis B predicts: each token carries distinct, non-redundant information, with the contribution magnitude growing along the AR order.
-    </p>
-
     <div class="section" style="margin-top: 8px;">
       <p>
-        <strong>Interpretation.</strong> We do not claim that CATok tokens follow a pre-specified frequency (or any other hand-coded) structure. What the conditional-annealing schedule produces is a <em>learned</em> gradual refinement of the action chunk during flow-matching generation (Figure 5c)&mdash;a holistic, progressive fine-tuning, not a prescribed low-to-high decomposition. The three analyses simply validate that, within this learned process, individual token positions acquire <em>distinct, non-redundant</em> generative roles rather than carrying interchangeable information. Analysis A is the span-normalized velocity-level test: each token's influence peaks at its own flow stage (<em>t*</em> &asymp; <em>k</em>/<em>K</em>, <strong>corr 0.985 ungrouped / 0.995 grouped</strong>), and only 72/640 cells exceed 5% of max |&Delta;|, ruling out &ldquo;substantial information redundancy.&rdquo; Analysis B reads the same learned specialization at the code-usage level: early slots select a concentrated code subset (low entropy, <strong>corr 0.68</strong>), late slots a diverse set. Analysis C, motivated by B, masks one token at a time and decodes at 1 step as a direct validation: masking early tokens barely moves the trajectory (redundant, compensated), while masking late tokens produces large, dimension-specific deformations (~1000&times; larger, in the wrist/gripper)&mdash;the non-redundancy B predicts. The learned gradual-refinement process thus endows tokens with distinct, stage-specific, non-redundant roles, validated at the velocity (A), code-usage (B), and trajectory (C) levels.
+        <strong>Interpretation.</strong> We do not claim that CATok tokens follow a pre-specified frequency (or any other hand-coded) structure. What the conditional-annealing schedule produces is a <em>learned</em> gradual refinement of the action chunk during flow-matching generation (Figure 5c)&mdash;a holistic, progressive fine-tuning, not a prescribed low-to-high decomposition. The three analyses simply validate that, within this learned process, individual token positions acquire <em>distinct, non-redundant</em> generative roles rather than carrying interchangeable information. Analysis A is the span-normalized velocity-level test: each token's influence peaks at its own flow stage (<em>t*</em> &asymp; <em>k</em>/<em>K</em>, <strong>corr 0.985 ungrouped / 0.995 grouped</strong>), and only 72/640 cells exceed 5% of max |&Delta;|, ruling out &ldquo;substantial information redundancy.&rdquo; Analysis B reads the same learned specialization at the code-usage level: early slots select a concentrated code subset (low entropy, <strong>corr 0.68</strong>), late slots a diverse set. Analysis C, motivated by B, masks one token at a time and decodes at 1 step as a direct validation: masking early tokens barely moves the trajectory (redundant, compensated), while masking late tokens produces large deformations (~1000&times; larger)&mdash;the non-redundancy B predicts. The learned gradual-refinement process thus endows tokens with distinct, stage-specific, non-redundant roles, validated at the velocity (A), code-usage (B), and trajectory (C) levels.
       </p>
     </div>
 
@@ -269,7 +262,7 @@
       <img src="./media/catok_vs_oat_mask.png" alt="CATok vs OAT single-token mask intervention">
     </div>
     <p class="figure-caption">
-      <strong>Figure 10. CATok vs OAT: single-token mask intervention.</strong> Per-token RMS trajectory change under single-token masking, 1-step decode (CATok: conditional annealing; OAT: emergent order, no annealing). CATok shows a ~1000&times; early-vs-late asymmetry (early &asymp; 10<sup>-4</sup>, late &asymp; 10<sup>-1</sup>; strong position-correlation), while OAT's mask effect is flat across all token positions (~10<sup>-3</sup>, late/early &asymp; 1.3&times;, corr(k, &middot;) &asymp; 0). The conditional-annealing schedule produces a distinctly flow-aligned, non-redundant organization that OAT's emergent order does not.
+      <strong>Figure 9. CATok vs OAT: single-token mask intervention.</strong> Per-token RMS trajectory change under single-token masking, 1-step decode (CATok: conditional annealing; OAT: emergent order, no annealing). CATok shows a ~1000&times; early-vs-late asymmetry (early &asymp; 10<sup>-4</sup>, late &asymp; 10<sup>-1</sup>; strong position-correlation), while OAT's mask effect is flat across all token positions (~10<sup>-3</sup>, late/early &asymp; 1.3&times;, corr(k, &middot;) &asymp; 0). The conditional-annealing schedule produces a distinctly flow-aligned, non-redundant organization that OAT's emergent order does not.
     </p>
 
     <!-- Real-World Deployment -->
@@ -299,7 +292,7 @@
         </figure>
       </div>
       <p class="figure-caption">
-        <strong>Figure 11. Scene layouts for the three real-robot task suites.</strong> Left to right: Pick-Spatial, Pick-Color, Stack-Long.
+        <strong>Figure 10. Scene layouts for the three real-robot task suites.</strong> Left to right: Pick-Spatial, Pick-Color, Stack-Long.
       </p>
 
       <ul>
@@ -367,7 +360,7 @@
       </figure>
     </div>
     <p class="figure-caption">
-      <strong>Figure 12. Real-world rollout comparison.</strong> Top row: <strong>QwenCATok</strong> (ours). Bottom row: <strong>QwenFAST</strong> baseline. Columns (left to right): pick, pick-red, stack.
+      <strong>Figure 11. Real-world rollout comparison.</strong> Top row: <strong>QwenCATok</strong> (ours). Bottom row: <strong>QwenFAST</strong> baseline. Columns (left to right): pick, pick-red, stack.
     </p>
 
     <div style="overflow-x: auto; margin: 20px 0;">
